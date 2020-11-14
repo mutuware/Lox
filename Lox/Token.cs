@@ -7,7 +7,7 @@
         object literal;
         int line;
 
-        Token(TokenType type, string lexeme, object literal, int line)
+        public Token(TokenType type, string lexeme, object literal, int line)
         {
             this.type = type;
             this.lexeme = lexeme;
@@ -20,7 +20,8 @@
             return type + " " + lexeme + " " + literal;
         }
     }
-    enum TokenType
+
+    public enum TokenType
     {
         // Single-character tokens.
         LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE,

@@ -38,7 +38,7 @@ namespace Lox
             {
                 Console.Write("> ");
                 var line = Console.ReadLine();
-                if (line == null) break;
+                if (line == null) break; // CTRL+Z
                 Run(line);
                 hadError = false;
             }
@@ -56,7 +56,7 @@ namespace Lox
             }
         }
 
-        static void Error(int line, string message)
+        public static void Error(int line, string message)
         {
             Report(line, "", message);
         }
