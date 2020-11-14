@@ -135,12 +135,6 @@ namespace Lox
             AddToken(TokenType.NUMBER, double.Parse(Source.JavaStyleSubstring(start, current)));
         }
 
-        private char PeekNext()
-        {
-            if (current + 1 >= Source.Length) return '\0';
-            return Source[current + 1];
-        }
-
         private void DoString()
         {
             while (Peek() != '"' && !IsAtEnd())
@@ -167,6 +161,12 @@ namespace Lox
         {
             if (IsAtEnd()) return '\0';
             return Source[current];
+        }
+
+        private char PeekNext()
+        {
+            if (current + 1 >= Source.Length) return '\0';
+            return Source[current + 1];
         }
 
         private bool Match(char expected) // conditional advance

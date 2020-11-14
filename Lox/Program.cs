@@ -10,6 +10,8 @@ namespace Lox
 
         static int Main(string[] args)
         {
+            ParserSanityCheck();
+
             if (args.Length > 1)
             {
                 Console.WriteLine("Usage: jlox [script]");
@@ -25,6 +27,19 @@ namespace Lox
             }
 
             return hadError ? 1 : 0;
+        }
+
+        private static void ParserSanityCheck()
+        {
+            Expr expression = new Binary(
+            new Unary(
+            new Token(TokenType.MINUS, "-", null, 1),
+            new Literal(123)),
+            new Token(TokenType.STAR, "*", null, 1),
+            new Grouping(
+            new Literal(45.67)));
+
+            Console.WriteLine(new AstPrinter().Print(expression));
         }
 
         static void RunFile(string path)
