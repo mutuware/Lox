@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 
 namespace Lox
 {
@@ -12,7 +11,7 @@ namespace Lox
         public string VisitLiteralExpr(Literal expr) => expr.Value == null ? "nil" : expr.Value.ToString();
         public string VisitUnaryExpr(Unary expr) => Parenthesize(expr.Operator.Lexeme, expr.Right);
 
-        private string Parenthesize(String name, params Expr[] exprs)
+        private string Parenthesize(string name, params Expr[] exprs)
         {
             var builder = new StringBuilder();
 
