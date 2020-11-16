@@ -111,7 +111,7 @@ namespace Lox
 
             var text = Source.JavaStyleSubstring(start, current);
 
-            if (Keywords.TryGetValue(text, out TokenType type))
+            if (!Keywords.TryGetValue(text, out TokenType type))
             {
                 type = TokenType.IDENTIFIER;
             }
