@@ -10,8 +10,6 @@ namespace Lox
 
         static int Main(string[] args)
         {
-            ParserSanityCheck();
-
             if (args.Length > 1)
             {
                 Console.WriteLine("Usage: jlox [script]");
@@ -27,19 +25,6 @@ namespace Lox
             }
 
             return hadError ? 1 : 0;
-        }
-
-        private static void ParserSanityCheck()
-        {
-            Expr expression = new Binary(
-            new Unary(
-            new Token(TokenType.MINUS, "-", null, 1),
-            new Literal(123)),
-            new Token(TokenType.STAR, "*", null, 1),
-            new Grouping(
-            new Literal(45.67)));
-
-            Console.WriteLine(new AstPrinter().Print(expression));
         }
 
         static void RunFile(string path)
@@ -64,16 +49,30 @@ namespace Lox
             Scanner scanner = new Scanner(source);
             List<Token> tokens = scanner.ScanTokens();
 
-            // For now, just print the tokens.
-            foreach (var token in tokens)
-            {
-                Console.WriteLine(token);
-            }
+            Parser parser = new Parser(tokens);
+            Expr expression = parser.Parse();
+
+            // Stop if there was a syntax error.
+            if (hadError) return;
+
+            Console.WriteLine(new AstPrinter().Print(expression));
         }
 
         public static void Error(int line, string message)
         {
             Report(line, "", message);
+        }
+
+        public static void Error(Token token, String message)
+        {
+            if (token.Type == TokenType.EOF)
+            {
+                Report(token.Line, " at end", message);
+            }
+            else
+            {
+                Report(token.Line, " at '" + token.Lexeme + "'", message);
+            }
         }
 
         private static void Report(int line, string where, string message)
