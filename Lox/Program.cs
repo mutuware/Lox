@@ -56,15 +56,15 @@ namespace Lox
             List<Token> tokens = scanner.ScanTokens();
 
             Parser parser = new Parser(tokens);
-            Expr expression = parser.Parse();
+            List<Stmt> statements = parser.Parse();
 
             // Stop if there was a syntax error.
             if (hadError) return;
 
-            Console.WriteLine(new AstPrinter().Print(expression));
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            interpreter.Interpret(expression);
-            Console.ForegroundColor = ConsoleColor.White;
+            //Console.WriteLine(new AstPrinter().Print(expression));
+            //Console.ForegroundColor = ConsoleColor.Cyan;
+            interpreter.Interpret(statements);
+            //Console.ForegroundColor = ConsoleColor.White;
         }
 
         public static void Error(int line, string message)

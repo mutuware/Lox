@@ -2,7 +2,7 @@
 
 namespace Lox
 {
-    public class AstPrinter : IVisitor<string>
+    public class AstPrinter : Expr.IVisitor<string>
     {
         public string Print(Expr expr) => expr.Accept(this);
 

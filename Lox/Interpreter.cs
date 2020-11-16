@@ -1,21 +1,37 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Lox
 {
-    public class Interpreter : IVisitor<Object>
+    public class Interpreter : Expr.IVisitor<Object>, Stmt.IVisitor<Object> // book has <Void>, statements don't return values
     {
-        public void Interpret(Expr expression)
+        public void Interpret(List<Stmt> statements)
         {
             try
             {
-                object value = Evaluate(expression);
-                Console.WriteLine(Stringify(value));
+                foreach(Stmt statement in statements)
+                {
+                    Execute(statement);
+                }
             }
             catch (RuntimeError error)
             {
                 Program.RuntimeError(error);
             }
         }
+
+        //public void Interpret(Expr expression)
+        //{
+        //    try
+        //    {
+        //        object value = Evaluate(expression);
+        //        Console.WriteLine(Stringify(value));
+        //    }
+        //    catch (RuntimeError error)
+        //    {
+        //        Program.RuntimeError(error);
+        //    }
+        //}
 
         private string Stringify(object obj)
         {
@@ -141,6 +157,60 @@ namespace Lox
         private object Evaluate(Expr expr)
         {
             return expr.Accept(this);
+        }
+
+        private void Execute(Stmt stmt)
+        {
+            stmt.Accept(this);
+        }
+
+        // Statement.IVisitor implementaion
+        public object VisitBlockStmt(Stmt.Block stmt)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object VisitClassStmt(Stmt.Class stmt)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object VisitExpressionStmt(Stmt.Expression stmt)
+        {
+            Evaluate(stmt.expression);
+            return null;
+        }
+
+        public object VisitFunctionStmt(Stmt.Function stmt)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object VisitIfStmt(Stmt.If stmt)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object VisitPrintStmt(Stmt.Print stmt)
+        {
+            object value = Evaluate(stmt.expression);
+            Console.WriteLine(Stringify(value));
+            return null;
+        }
+
+        public object VisitReturnStmt(Stmt.Return stmt)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object VisitVarStmt(Stmt.Var stmt)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object VisitWhileStmt(Stmt.While stmt)
+        {
+            throw new NotImplementedException();
         }
     }
 }
