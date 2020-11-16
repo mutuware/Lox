@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 
-
 namespace Lox
 {
     public class Parser
@@ -44,47 +43,6 @@ namespace Lox
 
             return expr;
         }
-
-        private bool Match(params TokenType[] types)
-        {
-            foreach (TokenType type in types)
-            {
-                if (Check(type))
-                {
-                    Advance();
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private bool Check(TokenType type)
-        {
-            if (IsAtEnd()) return false;
-            return Peek().Type == type;
-        }
-
-        private bool IsAtEnd()
-        {
-            return Peek().Type == TokenType.EOF;
-        }
-
-        private Token Peek()
-        {
-            return tokens[current];
-        }
-
-        private Token Previous()
-        {
-            return tokens[current - 1];
-        }
-        private Token Advance()
-        {
-            if (!IsAtEnd()) current++;
-            return Previous();
-        }
-
 
         private Expr Comparison()
         {
@@ -161,12 +119,51 @@ namespace Lox
             throw Error(Peek(), "Expect expression.");
         }
 
+        private bool Match(params TokenType[] types)
+        {
+            foreach (TokenType type in types)
+            {
+                if (Check(type))
+                {
+                    Advance();
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool Check(TokenType type)
+        {
+            if (IsAtEnd()) return false;
+            return Peek().Type == type;
+        }
+
+        private bool IsAtEnd()
+        {
+            return Peek().Type == TokenType.EOF;
+        }
+
+        private Token Peek()
+        {
+            return tokens[current];
+        }
+
+        private Token Previous()
+        {
+            return tokens[current - 1];
+        }
+        private Token Advance()
+        {
+            if (!IsAtEnd()) current++;
+            return Previous();
+        }
+
         private Token Consume(TokenType type, string message)
         {
             if (Check(type)) return Advance();
 
             throw Error(Peek(), message);
-
         }
 
         private ParseError Error(Token token, String message)
@@ -199,7 +196,5 @@ namespace Lox
                 Advance();
             }
         }
-
-        private class ParseError : Exception { }
     }
 }
