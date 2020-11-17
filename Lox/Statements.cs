@@ -21,7 +21,7 @@ namespace Lox
         public record Block(List<Stmt> Statements) : Stmt { public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitBlockStmt(this); }
         public record Expression(Expr expression) : Stmt { public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitExpressionStmt(this); }
         public record Print(Expr expression) : Stmt { public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitPrintStmt(this); }
-        public record Var(Token name, Expr initializer) : Stmt { public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitVarStmt(this); }
+        public record Var(Token Name, Expr Initializer) : Stmt { public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitVarStmt(this); }
         public record Class();
         public record Function();
         public record If();

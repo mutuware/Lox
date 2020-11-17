@@ -5,6 +5,8 @@ namespace Lox
 {
     public class Interpreter : Expr.IVisitor<Object>, Stmt.IVisitor<Object> // book has <Void>, statements don't return values
     {
+        private Environment environment = new Environment();
+
         public void Interpret(List<Stmt> statements)
         {
             try
@@ -205,12 +207,24 @@ namespace Lox
 
         public object VisitVarStmt(Stmt.Var stmt)
         {
-            throw new NotImplementedException();
+            object value = null;
+            if (stmt.Initializer != null)
+            {
+                value = Evaluate(stmt.Initializer);
+            }
+
+            environment.Define(stmt.Name.Lexeme, value);
+            return null;
         }
 
         public object VisitWhileStmt(Stmt.While stmt)
         {
             throw new NotImplementedException();
+        }
+
+        public object VisitVariableExpr(Variable expr)
+        {
+            return environment.Get(expr.Name);
         }
     }
 }

@@ -10,6 +10,7 @@ namespace Lox
         public string VisitGroupingExpr(Grouping expr) => Parenthesize("group", expr.Expression);
         public string VisitLiteralExpr(Literal expr) => expr.Value == null ? "nil" : expr.Value.ToString();
         public string VisitUnaryExpr(Unary expr) => Parenthesize(expr.Operator.Lexeme, expr.Right);
+        public string VisitVariableExpr(Variable expr) => Parenthesize("var", expr);
 
         private string Parenthesize(string name, params Expr[] exprs)
         {
