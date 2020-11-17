@@ -226,5 +226,12 @@ namespace Lox
         {
             return environment.Get(expr.Name);
         }
+
+        public object VisitAssignExpr(Assign expr)
+        {
+            object value = Evaluate(expr.Value);
+            environment.Assign(expr.Name, value);
+            return value;
+        }
     }
 }

@@ -7,6 +7,7 @@
 
         public interface IVisitor<T>
         {
+            T VisitAssignExpr(Assign expr);
             T VisitBinaryExpr(Binary expr);
             T VisitGroupingExpr(Grouping expr);
             T VisitLiteralExpr(Literal expr);
@@ -14,7 +15,7 @@
             T VisitVariableExpr(Variable expr);
         }
     }
-
+    public record Assign(Token Name, Expr Value) : Expr { public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitAssignExpr(this); }
     public record Binary(Expr Left, Token Operator, Expr Right) : Expr { public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitBinaryExpr(this); };
     public record Grouping(Expr Expression) : Expr { public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitGroupingExpr(this); }
     public record Literal(object Value) : Expr { public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitLiteralExpr(this); };

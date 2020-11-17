@@ -61,7 +61,10 @@ namespace Lox
             // Stop if there was a syntax error.
             if (hadError) return;
 
-            //Console.WriteLine(new AstPrinter().Print(expression));
+            foreach (var statement in statements)
+            {
+                Console.WriteLine(new AstPrinter().Print(statement));
+            }
             //Console.ForegroundColor = ConsoleColor.Cyan;
             interpreter.Interpret(statements);
             //Console.ForegroundColor = ConsoleColor.White;

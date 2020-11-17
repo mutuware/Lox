@@ -67,6 +67,26 @@ namespace Lox
             return new Stmt.Expression(expr);
         }
 
+        private Expr Assignment()
+        {
+            Expr expr = Equality();
+
+            if (Match(TokenType.EQUAL))
+            {
+                Token equals = Previous();
+                Expr value = Assignment();
+
+                if (expr is Variable) {
+                    Token name = ((Variable)expr).Name;
+                    return new Assign(name, value);
+                }
+
+                Error(equals, "Invalid assignment target.");
+            }
+
+            return expr;
+        }
+
         private Stmt PrintStatement()
         {
             Expr value = Expression();
@@ -88,8 +108,10 @@ namespace Lox
 
         private Expr Expression()
         {
-            return Equality();
+            return Assignment();
         }
+
+
 
         private Expr Equality()
         {
