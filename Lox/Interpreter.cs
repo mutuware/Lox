@@ -11,7 +11,7 @@ namespace Lox
         {
             try
             {
-                foreach(Stmt statement in statements)
+                foreach (Stmt statement in statements)
                 {
                     Execute(statement);
                 }
@@ -21,19 +21,6 @@ namespace Lox
                 Program.RuntimeError(error);
             }
         }
-
-        //public void Interpret(Expr expression)
-        //{
-        //    try
-        //    {
-        //        object value = Evaluate(expression);
-        //        Console.WriteLine(Stringify(value));
-        //    }
-        //    catch (RuntimeError error)
-        //    {
-        //        Program.RuntimeError(error);
-        //    }
-        //}
 
         private string Stringify(object obj)
         {
@@ -169,7 +156,26 @@ namespace Lox
         // Statement.IVisitor implementaion
         public object VisitBlockStmt(Stmt.Block stmt)
         {
-            throw new NotImplementedException();
+            ExecuteBlock(stmt.Statements, new Environment(environment));
+            return null;
+        }
+
+        private void ExecuteBlock(List<Stmt> statements, Environment environment)
+        {
+            Environment previous = this.environment;
+            try
+            {
+                this.environment = environment;
+
+                foreach (Stmt statement in statements)
+                {
+                    Execute(statement);
+                }
+            }
+            finally
+            {
+                this.environment = previous;
+            }
         }
 
         public object VisitClassStmt(Stmt.Class stmt)
@@ -190,7 +196,16 @@ namespace Lox
 
         public object VisitIfStmt(Stmt.If stmt)
         {
-            throw new NotImplementedException();
+            if (IsTruthy(Evaluate(stmt.Conditon)))
+            {
+                Execute(stmt.ThenBranch);
+            }
+            else
+            {
+                if (stmt.ElseBranch != null) Execute(stmt.ElseBranch);
+            }
+
+            return null;
         }
 
         public object VisitPrintStmt(Stmt.Print stmt)
@@ -232,6 +247,22 @@ namespace Lox
             object value = Evaluate(expr.Value);
             environment.Assign(expr.Name, value);
             return value;
+        }
+
+        public object VisitLogicalExpr(Logical expr)
+        {
+            object left = Evaluate(expr.Left);
+
+            if (expr.Operator.Type == TokenType.OR)
+            {
+                if (IsTruthy(left)) return left;
+            }
+            else
+            {
+                if (!IsTruthy(left)) return left;
+            }
+
+            return Evaluate(expr.Right);
         }
     }
 }

@@ -4,6 +4,18 @@ namespace Lox
 {
     public class Environment
     {
+        Environment enclosing;
+
+        public Environment()
+        {
+            enclosing = null;
+        }
+
+        public Environment(Environment enclosing)
+        {
+            this.enclosing = enclosing;
+        }
+
         Dictionary<string, object> values = new Dictionary<string, object>();
 
         public void Define(string name, object value)
@@ -18,6 +30,8 @@ namespace Lox
                 return values[name.Lexeme];
             }
 
+            if (enclosing != null) return enclosing.Get(name);
+
             throw new RuntimeError(name, "Undefined variable '" + name.Lexeme + "'.");
         }
 
@@ -25,7 +39,13 @@ namespace Lox
         {
             if (values.ContainsKey(name.Lexeme))
             {
-                values[name.Lexeme] =  value;
+                values[name.Lexeme] = value;
+                return;
+            }
+
+            if (enclosing != null)
+            {
+                enclosing.Assign(name, value);
                 return;
             }
 

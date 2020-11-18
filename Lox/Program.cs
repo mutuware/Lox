@@ -42,6 +42,7 @@ namespace Lox
         {
             for (; ; )
             {
+                Console.ForegroundColor = ConsoleColor.White;
                 Console.Write("> ");
                 var line = Console.ReadLine();
                 if (line == null) break; // CTRL+Z
@@ -61,13 +62,12 @@ namespace Lox
             // Stop if there was a syntax error.
             if (hadError) return;
 
-            foreach (var statement in statements)
-            {
-                Console.WriteLine(new AstPrinter().Print(statement));
-            }
-            //Console.ForegroundColor = ConsoleColor.Cyan;
+            //foreach (var statement in statements)
+            //{
+            //    Console.WriteLine(new AstPrinter().Print(statement));
+            //}
+            Console.ForegroundColor = ConsoleColor.Cyan;
             interpreter.Interpret(statements);
-            //Console.ForegroundColor = ConsoleColor.White;
         }
 
         public static void Error(int line, string message)
@@ -95,7 +95,9 @@ namespace Lox
 
         private static void Report(int line, string where, string message)
         {
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine($"[line {line}] Error {where} : {message}");
+            Console.ForegroundColor = ConsoleColor.White;
             hadError = true;
         }
     }

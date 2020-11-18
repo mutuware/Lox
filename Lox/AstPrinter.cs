@@ -13,14 +13,15 @@ namespace Lox
         public string VisitGroupingExpr(Grouping expr) => Parenthesize("group", expr.Expression);
         public string VisitLiteralExpr(Literal expr) => expr.Value == null ? "nil" : expr.Value.ToString();
         public string VisitUnaryExpr(Unary expr) => Parenthesize(expr.Operator.Lexeme, expr.Right);
-        public string VisitVariableExpr(Variable expr) => Parenthesize("var", expr);
+        public string VisitVariableExpr(Variable expr) => $"var:{expr.Name.Lexeme}";
+        public string VisitLogicalExpr(Logical expr) => $"{expr.Operator.Type}";
 
         // statements
-        public string VisitBlockStmt(Stmt.Block stmt) => throw new System.NotImplementedException();
+        public string VisitBlockStmt(Stmt.Block stmt) => "block";
         public string VisitClassStmt(Stmt.Class stmt) => throw new System.NotImplementedException();
         public string VisitExpressionStmt(Stmt.Expression stmt) => Parenthesize("exprstmt", stmt.expression);
         public string VisitFunctionStmt(Stmt.Function stmt) => throw new System.NotImplementedException();
-        public string VisitIfStmt(Stmt.If stmt) => throw new System.NotImplementedException();
+        public string VisitIfStmt(Stmt.If stmt) => Parenthesize("ifstmt", stmt.Conditon);
         public string VisitPrintStmt(Stmt.Print stmt) => Parenthesize("printstmt", stmt.expression);
         public string VisitReturnStmt(Stmt.Return stmt) => throw new System.NotImplementedException();
         public string VisitVarStmt(Stmt.Var stmt) => Parenthesize("varstmt", stmt.Initializer);
@@ -34,12 +35,13 @@ namespace Lox
             foreach (Stmt stmt in stmts)
             {
                 builder.Append(' ');
-                builder.Append(stmt); //.Accept(this));
+                builder.Append(stmt.Accept(this));
             }
             builder.Append(')');
 
             return builder.ToString();
         }
+
         private string Parenthesize(string name, params Expr[] exprs)
         {
             var builder = new StringBuilder();
@@ -54,6 +56,5 @@ namespace Lox
 
             return builder.ToString();
         }
-
     }
 }

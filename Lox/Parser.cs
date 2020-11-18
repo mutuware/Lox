@@ -55,9 +55,40 @@ namespace Lox
 
         private Stmt Statement()
         {
+            if (Match(TokenType.IF)) return IfStatement();
             if (Match(TokenType.PRINT)) return PrintStatement();
+            if (Match(TokenType.LEFT_BRACE)) return new Stmt.Block(Block());
 
             return ExpressionStatement();
+        }
+
+        private Stmt IfStatement()
+        {
+            Consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.");
+            Expr condition = Expression();
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.");
+
+            Stmt thenBranch = Statement();
+            Stmt elseBranch = null;
+            if (Match(TokenType.ELSE))
+            {
+                elseBranch = Statement();
+            }
+
+            return new Stmt.If(condition, thenBranch, elseBranch);
+        }
+
+        private List<Stmt> Block()
+        {
+            List<Stmt> statements = new List<Stmt>();
+
+            while (!Check(TokenType.RIGHT_BRACE) && !IsAtEnd())
+            {
+                statements.Add(Declaration());
+            }
+
+            Consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
+            return statements;
         }
 
         private Stmt ExpressionStatement()
@@ -67,16 +98,30 @@ namespace Lox
             return new Stmt.Expression(expr);
         }
 
+
+        private Stmt PrintStatement()
+        {
+            Expr value = Expression();
+            Consume(TokenType.SEMICOLON, "Expect ';' after value.");
+            return new Stmt.Print(value);
+        }
+
+        private Expr Expression()
+        {
+            return Assignment();
+        }
+
         private Expr Assignment()
         {
-            Expr expr = Equality();
+            Expr expr = Or();
 
             if (Match(TokenType.EQUAL))
             {
                 Token equals = Previous();
                 Expr value = Assignment();
 
-                if (expr is Variable) {
+                if (expr is Variable)
+                {
                     Token name = ((Variable)expr).Name;
                     return new Assign(name, value);
                 }
@@ -87,31 +132,35 @@ namespace Lox
             return expr;
         }
 
-        private Stmt PrintStatement()
+        private Expr Or()
         {
-            Expr value = Expression();
-            Consume(TokenType.SEMICOLON, "Expect ';' after value.");
-            return new Stmt.Print(value);
+            Expr expr = And();
+
+            if (Match(TokenType.OR))
+            {
+                Token or = Previous();
+                Expr right = And();
+
+                return new Logical(expr, or, right);
+            }
+
+            return expr;
         }
 
-        //public Expr Parse()
-        //{
-        //    try
-        //    {
-        //        return Expression();
-        //    }
-        //    catch (ParseError error)
-        //    {
-        //        return null;
-        //    }
-        //}
-
-        private Expr Expression()
+        private Expr And()
         {
-            return Assignment();
+            Expr expr = Equality();
+
+            if (Match(TokenType.AND))
+            {
+                Token and = Previous();
+                Expr right = Equality();
+
+                return new Logical(expr, and, right);
+            }
+
+            return expr;
         }
-
-
 
         private Expr Equality()
         {
@@ -192,7 +241,7 @@ namespace Lox
                 return new Literal(Previous().Literal);
             }
 
-            if(Match(TokenType.IDENTIFIER))
+            if (Match(TokenType.IDENTIFIER))
             {
                 return new Variable(Previous());
             }
