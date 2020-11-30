@@ -62,11 +62,19 @@ namespace Lox
             // Stop if there was a syntax error.
             if (hadError) return;
 
-            //foreach (var statement in statements)
-            //{
-            //    Console.WriteLine(new AstPrinter().Print(statement));
-            //}
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            foreach (var statement in statements)
+            {
+                //Console.WriteLine(new AstPrinter().Print(statement));
+            }
             Console.ForegroundColor = ConsoleColor.Cyan;
+
+            Resolver resolver = new Resolver(interpreter);
+            resolver.Resolve(statements);
+
+            // Stop if there was a resolution error.
+            if (hadError) return;
+
             interpreter.Interpret(statements);
         }
 

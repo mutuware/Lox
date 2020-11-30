@@ -5,7 +5,15 @@ namespace Lox
 {
     public class Interpreter : Expr.IVisitor<Object>, Stmt.IVisitor<Object> // book has <Void>, statements don't return values
     {
-        private Environment environment = new Environment();
+        public  Environment globals = new Environment(); 
+        private Environment environment;
+        private readonly Dictionary<Expr, int> locals = new Dictionary<Expr, int>();
+
+        public Interpreter()
+        {
+            environment = globals;
+            globals.Define("clock", new LoxClock());
+        }
 
         public void Interpret(List<Stmt> statements)
         {
@@ -21,6 +29,12 @@ namespace Lox
                 Program.RuntimeError(error);
             }
         }
+
+        public void Resolve(Expr expr, int depth)
+        {
+            locals[expr] = depth;
+        }
+
 
         private string Stringify(object obj)
         {
@@ -86,6 +100,31 @@ namespace Lox
 
             // unreachable
             return null;
+        }
+
+        public object VisitCallExpr(Call expr)
+        {
+            object callee = Evaluate(expr.Callee);
+
+            List<object> arguments = new List<object>();
+            foreach (Expr argument in expr.Arguments)
+            {
+                arguments.Add(Evaluate(argument));
+            }
+
+            if (!(callee is ILoxCallable))
+            {
+                throw new RuntimeError(expr.Paren, "Can only call functions and classes.");
+            }
+
+            ILoxCallable function = (ILoxCallable)callee;
+
+            if (arguments.Count != function.Arity())
+            {
+                throw new RuntimeError(expr.Paren, $"Expected {function.Arity()} arguments but got {arguments.Count}.");
+            }
+
+            return function.Call(this, arguments);
         }
 
         private bool IsEqual(object a, object b)
@@ -160,7 +199,7 @@ namespace Lox
             return null;
         }
 
-        private void ExecuteBlock(List<Stmt> statements, Environment environment)
+        public void ExecuteBlock(List<Stmt> statements, Environment environment)
         {
             Environment previous = this.environment;
             try
@@ -191,12 +230,14 @@ namespace Lox
 
         public object VisitFunctionStmt(Stmt.Function stmt)
         {
-            throw new NotImplementedException();
+            LoxFunction function = new LoxFunction(stmt);
+            environment.Define(stmt.Name.Lexeme, function);
+            return null;
         }
 
         public object VisitIfStmt(Stmt.If stmt)
         {
-            if (IsTruthy(Evaluate(stmt.Conditon)))
+            if (IsTruthy(Evaluate(stmt.Condition)))
             {
                 Execute(stmt.ThenBranch);
             }
@@ -217,7 +258,10 @@ namespace Lox
 
         public object VisitReturnStmt(Stmt.Return stmt)
         {
-            throw new NotImplementedException();
+            object value = null;
+            if (stmt.value != null) value = Evaluate(stmt.value);
+
+            throw new ReturnException(value);
         }
 
         public object VisitVarStmt(Stmt.Var stmt)
@@ -234,18 +278,47 @@ namespace Lox
 
         public object VisitWhileStmt(Stmt.While stmt)
         {
-            throw new NotImplementedException();
+            while (IsTruthy(Evaluate(stmt.Condition)))
+            {
+                Execute(stmt.Body);
+            }
+
+            return null;
         }
 
         public object VisitVariableExpr(Variable expr)
         {
-            return environment.Get(expr.Name);
+            return lookUpVariable(expr.Name, expr);
+
+            
+        }
+
+        private object lookUpVariable(Token name, Expr expr)
+        {
+            
+            if (locals.TryGetValue(expr, out var distance))
+            {
+                return environment.GetAt(distance, name.Lexeme);
+            }
+            else
+            {
+                return globals.Get(name);
+            }
         }
 
         public object VisitAssignExpr(Assign expr)
         {
+
             object value = Evaluate(expr.Value);
-            environment.Assign(expr.Name, value);
+
+            if (locals.TryGetValue(expr, out var distance))
+            {
+                environment.AssignAt(distance, expr.Name, value);
+            }
+            else
+            {
+                globals.Assign(expr.Name, value);
+            }
             return value;
         }
 
@@ -257,7 +330,7 @@ namespace Lox
             {
                 if (IsTruthy(left)) return left;
             }
-            else
+            if (expr.Operator.Type == TokenType.AND)
             {
                 if (!IsTruthy(left)) return left;
             }

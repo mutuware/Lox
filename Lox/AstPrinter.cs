@@ -10,6 +10,7 @@ namespace Lox
         // expressions
         public string VisitAssignExpr(Assign expr) => Parenthesize("assignstmt", expr.Value);
         public string VisitBinaryExpr(Binary expr) => Parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right);
+        public string VisitCallExpr(Call expr) => Parenthesize("call", expr.Callee);
         public string VisitGroupingExpr(Grouping expr) => Parenthesize("group", expr.Expression);
         public string VisitLiteralExpr(Literal expr) => expr.Value == null ? "nil" : expr.Value.ToString();
         public string VisitUnaryExpr(Unary expr) => Parenthesize(expr.Operator.Lexeme, expr.Right);
@@ -21,7 +22,7 @@ namespace Lox
         public string VisitClassStmt(Stmt.Class stmt) => throw new System.NotImplementedException();
         public string VisitExpressionStmt(Stmt.Expression stmt) => Parenthesize("exprstmt", stmt.expression);
         public string VisitFunctionStmt(Stmt.Function stmt) => throw new System.NotImplementedException();
-        public string VisitIfStmt(Stmt.If stmt) => Parenthesize("ifstmt", stmt.Conditon);
+        public string VisitIfStmt(Stmt.If stmt) => Parenthesize("ifstmt", stmt.Condition);
         public string VisitPrintStmt(Stmt.Print stmt) => Parenthesize("printstmt", stmt.expression);
         public string VisitReturnStmt(Stmt.Return stmt) => throw new System.NotImplementedException();
         public string VisitVarStmt(Stmt.Var stmt) => Parenthesize("varstmt", stmt.Initializer);
@@ -56,5 +57,6 @@ namespace Lox
 
             return builder.ToString();
         }
+
     }
 }
