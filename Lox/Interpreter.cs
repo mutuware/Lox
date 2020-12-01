@@ -219,7 +219,18 @@ namespace Lox
 
         public object VisitClassStmt(Stmt.Class stmt)
         {
-            throw new NotImplementedException();
+            environment.Define(stmt.Name.Lexeme, null);
+            Dictionary<string, LoxFunction> methods = new Dictionary<string, LoxFunction>();
+            foreach(var method in stmt.Methods)
+            {
+                LoxFunction function = new LoxFunction(method, environment);
+                methods[method.Name.Lexeme] = function;
+            }
+
+            LoxClass klass = new LoxClass(stmt.Name.Lexeme, methods);
+
+            environment.Assign(stmt.Name, klass);
+            return null;
         }
 
         public object VisitExpressionStmt(Stmt.Expression stmt)
@@ -230,7 +241,7 @@ namespace Lox
 
         public object VisitFunctionStmt(Stmt.Function stmt)
         {
-            LoxFunction function = new LoxFunction(stmt);
+            LoxFunction function = new LoxFunction(stmt, environment);
             environment.Define(stmt.Name.Lexeme, function);
             return null;
         }
@@ -336,6 +347,29 @@ namespace Lox
             }
 
             return Evaluate(expr.Right);
+        }
+
+        public object VisitGetExpr(Get expr)
+        {
+            object obj = Evaluate(expr.Object);
+            if (obj is LoxInstance) {
+                return ((LoxInstance)obj).Get(expr.Name);
+            }
+
+            throw new RuntimeError(expr.Name, "Only instances have properties.");
+        }
+
+        public object VisitSetExpr(Set expr)
+        {
+            object obj = Evaluate(expr.Object);
+
+            if (!(obj is LoxInstance)) {
+                throw new RuntimeError(expr.Name,"Only instances have fields.");
+            }
+
+            object value = Evaluate(expr.Value);
+            ((LoxInstance)obj).Set(expr.Name, value);
+            return value;
         }
     }
 }

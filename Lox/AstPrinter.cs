@@ -58,5 +58,14 @@ namespace Lox
             return builder.ToString();
         }
 
+        public string VisitGetExpr(Get expr)
+        {
+            return $"Get-{expr.Name}";
+        }
+
+        public string VisitSetExpr(Set expr)
+        {
+            return $"Set-{expr.Name}";
+        }
     }
 }

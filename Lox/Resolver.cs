@@ -77,7 +77,16 @@ namespace Lox
 
         public object VisitClassStmt(Stmt.Class stmt)
         {
-            throw new NotImplementedException();
+            Declare(stmt.Name);
+            Define(stmt.Name);
+
+            foreach(var method in stmt.Methods)
+            {
+                FunctionType declaration = FunctionType.METHOD;
+                ResolveFunction(method, declaration);
+            }
+
+            return null;
         }
 
         public object VisitExpressionStmt(Stmt.Expression stmt)
@@ -225,10 +234,24 @@ namespace Lox
             return null;
         }
 
+        public object VisitGetExpr(Get expr)
+        {
+            Resolve(expr.Object);
+            return null;
+        }
+
+        public object VisitSetExpr(Set expr)
+        {
+            Resolve(expr.Value);
+            Resolve(expr.Object);
+            return null;
+        }
+
         private enum FunctionType
         {
             NONE,
-            FUNCTION
+            FUNCTION,
+            METHOD
         }
     }
 }

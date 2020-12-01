@@ -6,9 +6,11 @@ namespace Lox
     public class LoxFunction : ILoxCallable
     {
         private Stmt.Function declaration;
+        private readonly Environment closure;
 
-        public LoxFunction(Stmt.Function declaration)
+        public LoxFunction(Stmt.Function declaration, Environment closure)
         {
+            this.closure = closure;
             this.declaration = declaration;
         }
 
@@ -16,7 +18,7 @@ namespace Lox
 
         public object Call(Interpreter interpreter, List<object> arguments)
         {
-            Environment environment = new Environment(interpreter.globals);
+            Environment environment = new Environment(closure);
             for (int i = 0; i < declaration.Params.Count; i++)
             {
                 environment.Define(declaration.Params[i].Lexeme, arguments[i]);

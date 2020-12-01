@@ -55,6 +55,7 @@ namespace Lox
 
         private Stmt Statement()
         {
+            if (Match(TokenType.CLASS)) return ClassDeclaration();
             if (Match(TokenType.FUN)) return Function("function");
             if (Match(TokenType.FOR)) return ForStatement();
             if (Match(TokenType.IF)) return IfStatement();
@@ -64,6 +65,22 @@ namespace Lox
             if (Match(TokenType.LEFT_BRACE)) return new Stmt.Block(Block());
 
             return ExpressionStatement();
+        }
+
+        private Stmt ClassDeclaration()
+        {
+            Token name = Consume(TokenType.IDENTIFIER, "Expect class name.");
+            Consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
+
+            var methods = new List<Stmt.Function>();
+            while (!Check(TokenType.RIGHT_BRACE) && !IsAtEnd())
+            {
+                methods.Add((Stmt.Function)Function("method"));
+            }
+
+            Consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
+
+            return new Stmt.Class(name, methods);
         }
 
         private Stmt ReturnStatement()
@@ -229,6 +246,11 @@ namespace Lox
                     Token name = ((Variable)expr).Name;
                     return new Assign(name, value);
                 }
+                else if (expr is Get) {
+                    Get get = (Get)expr;
+                    return new Set(get.Object, get.Name, value);
+                }
+
 
                 Error(equals, "Invalid assignment target.");
             }
@@ -343,6 +365,11 @@ namespace Lox
                 if (Match(TokenType.LEFT_PAREN))
                 {
                     expr = FinishCall(expr);
+                }
+                else if (Match(TokenType.DOT))
+                {
+                    Token name = Consume(TokenType.IDENTIFIER, "Expect property name after '.'.");
+                    expr = new Get(expr, name);
                 }
                 else
                 {

@@ -19,7 +19,7 @@ namespace Lox
 
         // Nested Stmt classes here...
         public record Block(List<Stmt> Statements) : Stmt { public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitBlockStmt(this); }
-        public record Class();
+        public record Class(Token Name, List<Stmt.Function> Methods) : Stmt { public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitClassStmt(this); }
         public record Expression(Expr expression) : Stmt { public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitExpressionStmt(this); }
         public record Function(Token Name, List<Token> Params, List<Stmt> body) : Stmt { public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitFunctionStmt(this); }
         public record If(Expr Condition, Stmt ThenBranch, Stmt ElseBranch) : Stmt { public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitIfStmt(this); }
