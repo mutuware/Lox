@@ -67,5 +67,10 @@ namespace Lox
         {
             return $"Set-{expr.Name}";
         }
+
+        public string VisitThisExpr(This expr)
+        {
+            return "this";
+        }
     }
 }

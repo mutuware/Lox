@@ -8,6 +8,7 @@ namespace Lox
         private readonly Interpreter interpreter;
         private readonly Stack<Dictionary<String, Boolean>> scopes = new Stack<Dictionary<string, bool>>();
         private FunctionType currentFunction = FunctionType.NONE;
+        private ClassType currentClass = ClassType.NONE;
 
         public Resolver(Interpreter interpreter)
         {
@@ -77,14 +78,28 @@ namespace Lox
 
         public object VisitClassStmt(Stmt.Class stmt)
         {
+            ClassType enclosingClass = currentClass;
+            currentClass = ClassType.CLASS;
+
             Declare(stmt.Name);
             Define(stmt.Name);
+
+            BeginScope();
+            scopes.Peek().Add("this", true);
 
             foreach(var method in stmt.Methods)
             {
                 FunctionType declaration = FunctionType.METHOD;
+                if (method.Name.Lexeme.Equals("init"))
+                {
+                    declaration = FunctionType.INITIALIZER;
+                }
                 ResolveFunction(method, declaration);
             }
+
+            EndScope();
+
+            currentClass = enclosingClass;
 
             return null;
         }
@@ -162,6 +177,10 @@ namespace Lox
 
             if (stmt.value != null)
             {
+                if (currentFunction == FunctionType.INITIALIZER)
+                {
+                    Program.Error(stmt.keyword, "Can't return a value from an initializer.");
+                }
                 Resolve(stmt.value);
             }
 
@@ -247,11 +266,31 @@ namespace Lox
             return null;
         }
 
+        public object VisitThisExpr(This expr)
+        {
+            if (currentClass == ClassType.NONE)
+            {
+                Program.Error(expr.Keyword, "Can't use 'this' outside of a class.");
+                return null;
+            }
+
+            ResolveLocal(expr, expr.Keyword);
+            return null;
+        }
+
         private enum FunctionType
         {
             NONE,
             FUNCTION,
+            INITIALIZER,
             METHOD
         }
+
+        private enum ClassType
+        {
+            NONE,
+            CLASS
+        }
+
     }
 }

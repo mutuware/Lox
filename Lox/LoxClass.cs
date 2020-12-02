@@ -19,11 +19,22 @@ namespace Lox
             this.Methods = methods;
         }
 
-        public int Arity() => 0;
+        public int Arity()
+        {
+            LoxFunction initializer = FindMethod("init");
+            if (initializer == null) return 0;
+            return initializer.Arity();
+        }
 
         public object Call(Interpreter interpreter, List<object> arguments)
         {
             LoxInstance instance = new LoxInstance(this);
+            LoxFunction initializer = FindMethod("init");
+            if (initializer != null)
+            {
+                initializer.Bind(instance).Call(interpreter, arguments);
+            }
+
             return instance;
         }
 

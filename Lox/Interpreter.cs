@@ -223,7 +223,7 @@ namespace Lox
             Dictionary<string, LoxFunction> methods = new Dictionary<string, LoxFunction>();
             foreach(var method in stmt.Methods)
             {
-                LoxFunction function = new LoxFunction(method, environment);
+                LoxFunction function = new LoxFunction(method, environment, method.Name.Lexeme.Equals("init"));
                 methods[method.Name.Lexeme] = function;
             }
 
@@ -241,7 +241,7 @@ namespace Lox
 
         public object VisitFunctionStmt(Stmt.Function stmt)
         {
-            LoxFunction function = new LoxFunction(stmt, environment);
+            LoxFunction function = new LoxFunction(stmt, environment, false);
             environment.Define(stmt.Name.Lexeme, function);
             return null;
         }
@@ -299,12 +299,12 @@ namespace Lox
 
         public object VisitVariableExpr(Variable expr)
         {
-            return lookUpVariable(expr.Name, expr);
+            return LookUpVariable(expr.Name, expr);
 
             
         }
 
-        private object lookUpVariable(Token name, Expr expr)
+        private object LookUpVariable(Token name, Expr expr)
         {
             
             if (locals.TryGetValue(expr, out var distance))
@@ -370,6 +370,11 @@ namespace Lox
             object value = Evaluate(expr.Value);
             ((LoxInstance)obj).Set(expr.Name, value);
             return value;
+        }
+
+        public object VisitThisExpr(This expr)
+        {
+            return LookUpVariable(expr.Keyword, expr);
         }
     }
 }
