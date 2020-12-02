@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Lox
 {
@@ -68,7 +69,7 @@ namespace Lox
         {
             Resolve(expr.Callee);
 
-            foreach(var argument in expr.Arguments)
+            foreach (var argument in expr.Arguments)
             {
                 Resolve(argument);
             }
@@ -84,10 +85,27 @@ namespace Lox
             Declare(stmt.Name);
             Define(stmt.Name);
 
-            BeginScope();
-            scopes.Peek().Add("this", true);
+            if (stmt.Superclass != null && stmt.Name.Lexeme.Equals(stmt.Superclass.Name.Lexeme))
+            {
+                Program.Error(stmt.Superclass.Name, "A class can't inherit from itself.");
+            }
 
-            foreach(var method in stmt.Methods)
+            if (stmt.Superclass != null)
+            {
+                currentClass = ClassType.SUBCLASS;
+                Resolve(stmt.Superclass);
+            }
+
+            if (stmt.Superclass != null)
+            {
+                BeginScope();
+                scopes.Peek()["super"] = true;
+            }
+
+            BeginScope();
+            scopes.Peek()["this"] = true;
+
+            foreach (var method in stmt.Methods)
             {
                 FunctionType declaration = FunctionType.METHOD;
                 if (method.Name.Lexeme.Equals("init"))
@@ -98,6 +116,8 @@ namespace Lox
             }
 
             EndScope();
+
+            if (stmt.Superclass != null) EndScope();
 
             currentClass = enclosingClass;
 
@@ -208,7 +228,7 @@ namespace Lox
         {
             for (int i = scopes.Count - 1; i >= 0; i--)
             {
-                if (scopes.ToArray()[i].ContainsKey(name.Lexeme)) // Java has indexing of stacks, here converting to array.
+                if (scopes.ElementAt(i).ContainsKey(name.Lexeme)) // Java has indexing of stacks, here converting to array.
                 {
                     interpreter.Resolve(expr, scopes.Count - 1 - i);
                     return;
@@ -278,6 +298,21 @@ namespace Lox
             return null;
         }
 
+        public object VisitSuperExpr(Super expr)
+        {
+            if (currentClass == ClassType.NONE)
+            {
+                Program.Error(expr.Keyword, "Can't use 'super' outside of a class.");
+            }
+            else if (currentClass != ClassType.SUBCLASS)
+            {
+                Program.Error(expr.Keyword, "Can't use 'super' in a class with no superclass.");
+            }
+
+            ResolveLocal(expr, expr.Keyword);
+            return null;
+        }
+
         private enum FunctionType
         {
             NONE,
@@ -289,7 +324,8 @@ namespace Lox
         private enum ClassType
         {
             NONE,
-            CLASS
+            CLASS,
+            SUBCLASS
         }
 
     }

@@ -72,5 +72,10 @@ namespace Lox
         {
             return "this";
         }
+
+        public string VisitSuperExpr(Super expr)
+        {
+            return "super";
+        }
     }
 }

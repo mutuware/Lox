@@ -70,6 +70,13 @@ namespace Lox
         private Stmt ClassDeclaration()
         {
             Token name = Consume(TokenType.IDENTIFIER, "Expect class name.");
+            Variable superclass = null;
+            if (Match(TokenType.LESS))
+            {
+                Consume(TokenType.IDENTIFIER, "Expect superclass name.");
+                superclass = new Variable(Previous());
+            }
+
             Consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
 
             var methods = new List<Stmt.Function>();
@@ -80,7 +87,7 @@ namespace Lox
 
             Consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
 
-            return new Stmt.Class(name, methods);
+            return new Stmt.Class(name, superclass, methods);
         }
 
         private Stmt ReturnStatement()
@@ -389,6 +396,14 @@ namespace Lox
             if (Match(TokenType.NUMBER, TokenType.STRING))
             {
                 return new Literal(Previous().Literal);
+            }
+
+            if (Match(TokenType.SUPER))
+            {
+                Token keyword = Previous();
+                Consume(TokenType.DOT, "Expect '.' after 'super'.");
+                Token method = Consume(TokenType.IDENTIFIER, "Expect superclass method name.");
+                return new Super(keyword, method);
             }
 
             if (Match(TokenType.THIS)) return new This(Previous());

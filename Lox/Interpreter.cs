@@ -5,7 +5,7 @@ namespace Lox
 {
     public class Interpreter : Expr.IVisitor<Object>, Stmt.IVisitor<Object> // book has <Void>, statements don't return values
     {
-        public  Environment globals = new Environment(); 
+        public Environment globals = new Environment();
         private Environment environment;
         private readonly Dictionary<Expr, int> locals = new Dictionary<Expr, int>();
 
@@ -219,15 +219,37 @@ namespace Lox
 
         public object VisitClassStmt(Stmt.Class stmt)
         {
+            object superclass = null;
+            if (stmt.Superclass != null)
+            {
+                superclass = Evaluate(stmt.Superclass);
+                if (!(superclass is LoxClass))
+                {
+                    throw new RuntimeError(stmt.Superclass.Name, "Superclass must be a class.");
+                }
+            }
+
             environment.Define(stmt.Name.Lexeme, null);
+
+            if (stmt.Superclass != null)
+            {
+                environment = new Environment(environment);
+                environment.Define("super", superclass);
+            }
+
             Dictionary<string, LoxFunction> methods = new Dictionary<string, LoxFunction>();
-            foreach(var method in stmt.Methods)
+            foreach (var method in stmt.Methods)
             {
                 LoxFunction function = new LoxFunction(method, environment, method.Name.Lexeme.Equals("init"));
                 methods[method.Name.Lexeme] = function;
             }
 
-            LoxClass klass = new LoxClass(stmt.Name.Lexeme, methods);
+            LoxClass klass = new LoxClass(stmt.Name.Lexeme, (LoxClass)superclass, methods);
+
+            if (superclass != null)
+            {
+                environment = environment.Enclosing;
+            }
 
             environment.Assign(stmt.Name, klass);
             return null;
@@ -301,12 +323,11 @@ namespace Lox
         {
             return LookUpVariable(expr.Name, expr);
 
-            
+
         }
 
         private object LookUpVariable(Token name, Expr expr)
         {
-            
             if (locals.TryGetValue(expr, out var distance))
             {
                 return environment.GetAt(distance, name.Lexeme);
@@ -319,7 +340,6 @@ namespace Lox
 
         public object VisitAssignExpr(Assign expr)
         {
-
             object value = Evaluate(expr.Value);
 
             if (locals.TryGetValue(expr, out var distance))
@@ -352,7 +372,8 @@ namespace Lox
         public object VisitGetExpr(Get expr)
         {
             object obj = Evaluate(expr.Object);
-            if (obj is LoxInstance) {
+            if (obj is LoxInstance)
+            {
                 return ((LoxInstance)obj).Get(expr.Name);
             }
 
@@ -363,8 +384,9 @@ namespace Lox
         {
             object obj = Evaluate(expr.Object);
 
-            if (!(obj is LoxInstance)) {
-                throw new RuntimeError(expr.Name,"Only instances have fields.");
+            if (!(obj is LoxInstance))
+            {
+                throw new RuntimeError(expr.Name, "Only instances have fields.");
             }
 
             object value = Evaluate(expr.Value);
@@ -375,6 +397,23 @@ namespace Lox
         public object VisitThisExpr(This expr)
         {
             return LookUpVariable(expr.Keyword, expr);
+        }
+
+        public object VisitSuperExpr(Super expr)
+        {
+            int distance = locals[expr];
+            LoxClass superclass = (LoxClass)environment.GetAt(distance, "super");
+
+            LoxInstance obj = (LoxInstance)environment.GetAt(distance - 1, "this");
+
+            LoxFunction method = superclass.FindMethod(expr.Method.Lexeme);
+
+            if (method == null)
+            {
+                throw new RuntimeError(expr.Method, "Undefined property '" + expr.Method.Lexeme + "'.");
+            }
+
+            return method.Bind(obj);
         }
     }
 }

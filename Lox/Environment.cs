@@ -4,16 +4,16 @@ namespace Lox
 {
     public class Environment
     {
-        Environment enclosing;
+        public readonly Environment Enclosing;
 
         public Environment()
         {
-            enclosing = null;
+            Enclosing = null;
         }
 
         public Environment(Environment enclosing)
         {
-            this.enclosing = enclosing;
+            this.Enclosing = enclosing;
         }
 
         Dictionary<string, object> values = new Dictionary<string, object>();
@@ -30,13 +30,15 @@ namespace Lox
                 return values[name.Lexeme];
             }
 
-            if (enclosing != null) return enclosing.Get(name);
+            if (Enclosing != null) return Enclosing.Get(name);
 
             throw new RuntimeError(name, "Undefined variable '" + name.Lexeme + "'.");
         }
 
         public object GetAt(int distance, string name)
         {
+            //Ancestor(distance).values.TryGetValue(name, out var value);
+            //return value;
             return Ancestor(distance).values[name];
         }
 
@@ -45,7 +47,7 @@ namespace Lox
             Environment environment = this;
             for (int i = 0; i < distance; i++)
             {
-                environment = environment.enclosing;
+                environment = environment.Enclosing;
             }
 
             return environment;
@@ -64,9 +66,9 @@ namespace Lox
                 return;
             }
 
-            if (enclosing != null)
+            if (Enclosing != null)
             {
-                enclosing.Assign(name, value);
+                Enclosing.Assign(name, value);
                 return;
             }
 

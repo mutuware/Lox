@@ -17,6 +17,7 @@ namespace Lox
             T VisitLiteralExpr(Literal expr);
             T VisitLogicalExpr(Logical expr);
             T VisitSetExpr(Set expr);
+            T VisitSuperExpr(Super expr);
             T VisitThisExpr(This expr);
             T VisitUnaryExpr(Unary expr);
             T VisitVariableExpr(Variable expr);
@@ -30,6 +31,7 @@ namespace Lox
     public record Literal(object Value) : Expr { public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitLiteralExpr(this); };
     public record Logical(Expr Left, Token Operator, Expr Right) : Expr { public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitLogicalExpr(this); };
     public record Set(Expr Object, Token Name, Expr Value) : Expr { public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitSetExpr(this); }
+    public record Super(Token Keyword, Token Method) : Expr { public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitSuperExpr(this); }
     public record This(Token Keyword) : Expr { public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitThisExpr(this); }
     public record Unary(Token Operator, Expr Right) : Expr { public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitUnaryExpr(this); };
     public record Variable(Token Name) : Expr { public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitVariableExpr(this); };

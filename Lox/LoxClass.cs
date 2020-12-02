@@ -6,6 +6,7 @@ namespace Lox
     public class LoxClass : ILoxCallable
     {
         public readonly string Name;
+        public readonly LoxClass Superclass;
         public readonly Dictionary<string, LoxFunction> Methods;
 
         public LoxClass(string name)
@@ -13,9 +14,10 @@ namespace Lox
             this.Name = name;
         }
 
-        public LoxClass(string name, Dictionary<string, LoxFunction> methods)
+        public LoxClass(string name, LoxClass superclass, Dictionary<string, LoxFunction> methods)
         {
             this.Name = name;
+            this.Superclass = superclass;
             this.Methods = methods;
         }
 
@@ -43,6 +45,11 @@ namespace Lox
             if (Methods.ContainsKey(name))
             {
                 return Methods[name];
+            }
+
+            if (Superclass != null)
+            {
+                return Superclass.FindMethod(name);
             }
 
             return null;
